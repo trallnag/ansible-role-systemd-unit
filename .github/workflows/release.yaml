@@ -1,0 +1,84 @@
+name: Release
+
+#
+# Releases new version.
+#
+# Make sure to prepare project for a new release (see docs for more). After
+# publishing role to Ansible Galaxy a GitHub release is drafted.
+#
+# Requires GALAXY_API_KEY secret to be present.
+#
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*.*.*
+
+env:
+  PYTHON_VERSION: ""
+  RELEASE_VERSION: ""
+  RELEASE_NAME: ""
+
+jobs:
+  release:
+    name: Release
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine PYTHON_VERSION
+        run: |
+          PYTHON_VERSION=$(./scripts/get-python-version.sh)
+          echo "PYTHON_VERSION=$PYTHON_VERSION" | tee -a "$GITHUB_ENV"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install mdformat
+        run: pipx install mdformat
+
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python -
+
+      - name: Install project
+        run: poetry install
+
+      - name: Import to Ansible Galaxy
+        run: >-
+          poetry run ansible-galaxy role import
+          --server https://galaxy.ansible.com/api/
+          --token "${{ secrets.ANSIBLE_GALAXY_API_TOKEN }}"
+          --role-name systemd_unit
+          ${{ github.event.repository.owner.login }}
+          ${{ github.event.repository.name }}
+
+      - name: Determine release version
+        run: |
+          release_version=$(echo "${GITHUB_REF#refs/*/}" | cut -c 2-)
+          echo "RELEASE_VERSION=$release_version" >> $GITHUB_ENV
+
+      - name: Determine release name
+        run: |
+          RELEASE_NAME="${{ env.RELEASE_VERSION }} / $(date +%Y-%m-%d)"
+          echo "RELEASE_NAME=$RELEASE_NAME" | tee -a "$GITHUB_ENV"
+
+      - name: Extract release notes
+        run: task extract-release-notes
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ env.RELEASE_NAME }}
+          body_path: tmp/release.md
+          draft: true

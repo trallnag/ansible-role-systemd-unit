@@ -1,0 +1,18 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+package-mode = false
+name = "ansible-role-systemd-unit"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+ansible = "^10.2.0"
+docker = "^7.1.0"
+molecule = "^24.7.0"
+
+ansible-lint = { version = "^24.7.0", markers = "platform_system != 'Windows'" }
+
+molecule-plugins = { version = "^23.5.3", extras = ["docker"] }
