@@ -50,7 +50,7 @@ repos:
         name: Detect private keys
 
   - repo: https://github.com/rbubley/mirrors-prettier
-    rev: v3.3.3
+    rev: v3.6.2
     hooks:
       - id: prettier
         name: Format Markdown files
@@ -62,7 +62,7 @@ repos:
         types: [json]
 
   - repo: https://github.com/google/yamlfmt
-    rev: v0.14.0
+    rev: v0.17.2
     hooks:
       - id: yamlfmt
         name: Format YAML files
