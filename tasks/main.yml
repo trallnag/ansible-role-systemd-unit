@@ -1,55 +1,66 @@
-- name: Place systemd unit file
-  ansible.builtin.copy:
-    content: "{{ systemd_unit_content }}"
-    dest: "/etc/systemd/system/{{ systemd_unit_name }}"
-    mode: u=rw,g=rw,o=r
-  become: true
-  register: copy
-
-- name: Verify systemd unit file
-  ansible.builtin.command: systemd-analyze verify {{ systemd_unit_name }}
-  become: true
-  changed_when: false
-
-- name: Reload systemd daemon
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-  become: true
-  when: copy.changed # noqa no-handler
-
-- name: Ensure systemd unit is active
-  when: systemd_unit_activate
+- name: Set up systemd unit
   become: true
   block:
-    - name: Check systemd unit activity
-      ansible.builtin.command: systemctl is-active --quiet {{ systemd_unit_name }} # noqa command-instead-of-module
-      changed_when: false
-      failed_when: false
-      register: active
+    - name: Place systemd unit file
+      ansible.builtin.copy:
+        content: "{{ systemd_unit__content }}"
+        dest: "/etc/systemd/system/{{ systemd_unit__name }}"
+        mode: u=rw,g=r,o=r
+      register: systemd_unit__place_systemd_unit_file
 
-    - name: Start and enable systemd unit
+    - name: Verify systemd unit
+      when: systemd_unit__place_systemd_unit_file.changed # noqa no-handler
+      ansible.builtin.command:
+        cmd: systemd-analyze verify {{ systemd_unit__name }}
+      changed_when: false
+
+    - name: Reload systemd daemon
+      when: systemd_unit__place_systemd_unit_file.changed # noqa no-handler
       ansible.builtin.systemd_service:
-        name: "{{ systemd_unit_name }}"
-        state: started
-        enabled: true
-      register: started
+        daemon_reload: true
 
-    - name: Restart systemd unit
-      when: (copy.changed or systemd_unit_restart) and active.rc == 0
-      ansible.builtin.systemd_service:
-        name: "{{ systemd_unit_name }}"
-        state: restarted
-      register: restarted
+    - name: Ensure systemd unit is active
+      when: systemd_unit__activate
+      block:
+        - name: Check systemd unit activity
+          ansible.builtin.command:
+            cmd: systemctl is-active --quiet {{ systemd_unit__name }} # noqa command-instead-of-module
+          changed_when: false
+          failed_when: false
+          register: systemd_unit__check_systemd_unit_activity
 
-- name: Ensure systemd unit is running
-  when: systemd_unit_running_check
-  become: true
-  block:
-    - name: Pause before checking systemd unit
-      when: started.changed or restarted.changed
-      ansible.builtin.command: sleep {{ systemd_unit_running_check_delay }}
-      changed_when: false
+        - name: Start and enable systemd unit
+          ansible.builtin.systemd_service:
+            name: "{{ systemd_unit__name }}"
+            state: started
+            enabled: true
+          register: systemd_unit__start_and_enable_systemd_unit
 
-    - name: Check systemd unit activity
-      ansible.builtin.command: systemctl is-active --quiet {{ systemd_unit_name }} # noqa command-instead-of-module
-      changed_when: false
+        - name: Restart and enable systemd unit
+          when: >-
+            systemd_unit__check_systemd_unit_activity.rc == 0
+            and (
+              systemd_unit__place_systemd_unit_file.changed
+              or systemd_unit__restart
+            )
+          ansible.builtin.systemd_service:
+            name: "{{ systemd_unit__name }}"
+            state: restarted
+            enabled: true
+          register: systemd_unit__restart_and_enable_systemd_unit
+
+    - name: Ensure systemd unit is running
+      when: systemd_unit__running_check
+      block:
+        - name: Pause before checking systemd unit
+          when: >-
+            systemd_unit__start_and_enable_systemd_unit.changed
+            or systemd_unit__restart_and_enable_systemd_unit.changed
+          ansible.builtin.command:
+            cmd: sleep {{ systemd_unit__running_check_delay }}
+          changed_when: false
+
+        - name: Check systemd unit activity
+          ansible.builtin.command:
+            cmd: systemctl is-active --quiet {{ systemd_unit__name }} # noqa command-instead-of-module
+          changed_when: false

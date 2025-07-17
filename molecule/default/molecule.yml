@@ -2,21 +2,26 @@ dependency:
   name: galaxy
 
 driver:
-  name: docker
+  name: default
+  options:
+    managed: false
+    ansible_connection_options:
+      ansible_connection: local
 
 platforms:
-  - name: ubuntu-2404
-    image: docker.io/geerlingguy/docker-ubuntu2404-ansible
-    command: /usr/sbin/init
-    pre_build_image: true
-    cgroupns_mode: host
-    privileged: true
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:rw
-      - /var/lib/containerd
+  - name: localhost
+    hostname: localhost
 
 provisioner:
   name: ansible
 
 verifier:
   name: ansible
+
+scenario:
+  test_sequence:
+    - cleanup
+    - converge
+    - idempotence
+    - verify
+    - cleanup

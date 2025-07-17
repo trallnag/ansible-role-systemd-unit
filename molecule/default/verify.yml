@@ -1,7 +1,9 @@
 - name: Verify
   hosts: all
-  gather_facts: true
+
   tasks:
     - name: Check systemd unit activity
-      ansible.builtin.command: systemctl is-active --quiet test.service # noqa command-instead-of-module
+      ansible.builtin.command:
+        cmd: systemctl is-active --quiet test.service # noqa command-instead-of-module
       changed_when: false
+      become: true
