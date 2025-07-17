@@ -81,7 +81,7 @@ run and check the
 ## Wrap up
 
 If everything is fine, go to the release page of this project on GitHub
-[here](https://github.com/trallnag/ansible-role-systemd-unit/releases) and review the
-automatically created release draft.
+[here](https://github.com/trallnag/ansible-role-systemd-unit/releases) and
+review the automatically created release draft.
 
 Publish the draft.
