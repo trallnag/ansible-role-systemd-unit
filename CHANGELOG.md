@@ -7,6 +7,10 @@ and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0).
 
 ## Unreleased
 
+Nothing.
+
+## [1.0.0](https://github.com/trallnag/ansible-role-systemd-unit/compare/v0.1.0...v1.0.0) / 2025-07-18
+
 ### Changed
 
 - Updated documentation.
