@@ -26,49 +26,49 @@ systemd_unit__name:
   type: str
   required: true
   description: >-
-    Full name of the systemd unit. For example "rclone-sync.timer".
+    Full name of the systemd unit. For example `rclone-sync.timer`.
 
 systemd_unit__content:
   type: str
   required: true
   description: >-
-    The systemd unit itself. For example the content of the "rclone-sync.timer"
-    file.
+    The systemd unit file content. For example the content of the
+    `rclone-sync.timer` unit file.
 
 systemd_unit__activate:
   type: bool
   required: false
   default: false
   description: >-
-    Should the unit be activated? Activation means: Unmask, enable, s and
-    restart if already active.
+    Should the unit be activated? Activation means: Unmask, enable, start,
+    and restart if already active.
 
 systemd_unit__restart:
   type: bool
   required: false
   default: false
   description: >-
-    Should the unit be restarted if it was already active and the uni file
-    itself did not change? For example useful to trigger restart if script
-    changed that is executed by service.
+    Should the unit be restarted if it was already active and the unit
+    file itself did not change? For example useful to trigger restart
+    if script changed that is executed by service.
 
 systemd_unit__running_check:
   type: str
   required: false
   default: false
   description: >-
-    Should a `systemctl is-active` be performed at the end of the rol ensure
-    unit is running?
+    Should a `systemctl is-active` be performed at the end of the role to
+    ensure unit is running?
 
 systemd_unit__running_check_delay:
   type: str
   required: false
   default: "0"
   description: >-
-    Time in seconds to wait before performing check to see if unit is running at
-    end of role. Only relevant if `systemd_unit_running_ch is set to `true`.
-    Decimals (as string) supported. Pause only done if unit enabled, started, or
-    restarted by role.
+    Time in seconds to wait before performing check to see if unit is
+    running at end of role. Only relevant if `systemd_unit__running_check`
+    is set to `true`. Decimals (as string) supported. Pause only done
+    if unit enabled, started, or restarted by role.
 ```
 
 ## Project status
